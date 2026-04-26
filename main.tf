@@ -5,4 +5,14 @@ resource "aws_s3_bucket" "images" {
   bucket = "${var.project}-images"
 }
 
+locals {
+  project = var.project
+
+  tags = {
+    Project   = local.project
+    ManagedBy = "Terraform"
+  }
+}
+
+
 # TODO: Add Lambda, EventBridge rule, Aurora cluster, SNS topic
