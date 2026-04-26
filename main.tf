@@ -1,8 +1,8 @@
 # Lab 1 Starter Terraform
 provider "aws" { region = var.region }
 
-resource "aws_s3_bucket" "images" {
-  bucket = "${var.project}-images"
+resource "aws_s3_bucket" "imagesbucks3" {
+  bucket = "${var.project}-imagesbucks3"
 }
 
 locals {
