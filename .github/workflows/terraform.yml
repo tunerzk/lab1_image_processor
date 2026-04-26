@@ -28,6 +28,7 @@ jobs:
           terraform_version: 1.6.6
 
       - name: Terraform Format
+        working-directory: ./lab1_image_processor
         run: terraform fmt -check -recursive
 
       - name: Terraform Init (Lab 1)
