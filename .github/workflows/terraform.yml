@@ -3,7 +3,7 @@ name: Terraform CI
 on:
   push:
     paths:
-      - 'lab1_image_processsor/**'
+      - 'lab1_image_processor/**'
      # - 'lab2_order_system/**'
       - '.github/workflows/terraform.yml'
   pull_request:
