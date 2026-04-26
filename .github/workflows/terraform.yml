@@ -3,12 +3,12 @@ name: Terraform CI
 on:
   push:
     paths:
-      - 'lab1_image_processor/**'
+      - 'LAB1_IMAGE_PROCESSOR/**'
       - 'lab2_order_system/**'
       - '.github/workflows/terraform.yml'
   pull_request:
     paths:
-      - 'lab1_image_processor/**'
+      - 'LAB1_IMAGE_PROCESSOR/**'
       - 'lab2_order_system/**'
 
 jobs:
@@ -31,15 +31,15 @@ jobs:
         run: terraform fmt -check -recursive
 
       - name: Terraform Init (Lab 1)
-        working-directory: ./lab1_image_processor
+        working-directory: ./LAB1_IMAGE_PROCESSOR
         run: terraform init -input=false
 
       - name: Terraform Validate (Lab 1)
-        working-directory: ./lab1_image_processor
+        working-directory: ./LAB1_IMAGE_PROCESSOR
         run: terraform validate
 
       - name: Terraform Plan (Lab 1)
-        working-directory: ./lab1_image_processor
+        working-directory: ./LAB1_IMAGE_PROCESSOR
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -51,7 +51,7 @@ jobs:
          -var "db_password=${DB_PASSWORD}"
 
       - name: Terraform Apply (Lab 1)
-        working-directory: ./lab1_image_processor
+        working-directory: ./LAB1_IMAGE_PROCESSOR
         env:
          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
