@@ -21,18 +21,12 @@ resource "aws_subnet" "private_b" {
 }
 
 ########security group for Aurora allowing access from Lambda########
-resource "aws_security_group" "aurora_sg" {
-  name        = "${local.project}-aurora-sg"
-  description = "Allow Lambda access to Aurora"
+resource "aws_security_group" "lambda_sg" {
+  name        = "${local.project}-lambda-sg"
+  description = "Security group for Lambda functions"
   vpc_id      = aws_vpc.main.id
 
-  ingress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = ["10.126.0.0/16"] # allow VPC internal traffic
-  }
-
+  # Lambdas need outbound access to Aurora + AWS APIs
   egress {
     from_port   = 0
     to_port     = 0
@@ -42,6 +36,19 @@ resource "aws_security_group" "aurora_sg" {
 
   tags = local.tags
 }
+
+resource "aws_security_group_rule" "aurora_allow_lambda" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.aurora_sg.id
+  source_security_group_id = aws_security_group.lambda_sg.id
+}
+
+
+  
+
 
 #aurora subnet group for cluster#############################
 resource "aws_db_subnet_group" "aurora_subnets" {
@@ -65,7 +72,7 @@ resource "aws_rds_cluster" "orders_cluster" {
   master_password = var.db_password
 
   db_subnet_group_name   = aws_db_subnet_group.aurora_subnets.name
-  vpc_security_group_ids = [aws_security_group.aurora_sg.id]
+vpc_security_group_ids = [aws_security_group.aurora_sg.id]
 
   serverlessv2_scaling_configuration {
     min_capacity = 0.5
@@ -84,4 +91,21 @@ resource "aws_rds_cluster_instance" "orders_instance" {
   engine              = aws_rds_cluster.orders_cluster.engine
   publicly_accessible = false
   tags                = local.tags
+}
+
+#####aurora security group allowing access from Lambda################
+resource "aws_security_group" "aurora_sg" {
+  name        = "${local.project}-aurora-sg"
+  description = "Aurora DB security group"
+  vpc_id      = aws_vpc.main.id
+
+  # No ingress here — ingress is added via aws_security_group_rule
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = local.tags
 }

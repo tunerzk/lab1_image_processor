@@ -18,3 +18,8 @@ variable "db_password" {
   type        = string
   sensitive   = true
 }
+
+variable "notification_email" {
+  description = "killjoy1100@gmail.com"
+  type        = string
+}

@@ -16,7 +16,7 @@ resource "aws_iam_role_policy_attachment" "lambda_basic" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-#####lambda permissions for EventBridge#####
+##### Lambda permission for EventBridge → OrderCreated #####
 resource "aws_lambda_permission" "allow_eventbridge_invoke_order_created" {
   statement_id  = "AllowEventBridgeInvokeOrderCreated"
   action        = "lambda:InvokeFunction"
@@ -25,15 +25,7 @@ resource "aws_lambda_permission" "allow_eventbridge_invoke_order_created" {
   source_arn    = aws_cloudwatch_event_rule.order_created_rule.arn
 }
 
-resource "aws_lambda_permission" "allow_eventbridge_invoke_order_paid" {
-  statement_id  = "AllowEventBridgeInvokeOrderPaid"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.payment_processor.function_name
-  principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.order_paid_rule.arn
-}
-
-##sqs permissions for Lambda#########
+## SQS triggers payment_processor Lambda #####
 resource "aws_lambda_permission" "allow_sqs_invoke_payment_processor" {
   statement_id  = "AllowSQSTrigger"
   action        = "lambda:InvokeFunction"
@@ -42,7 +34,30 @@ resource "aws_lambda_permission" "allow_sqs_invoke_payment_processor" {
   source_arn    = aws_sqs_queue.payment_queue.arn
 }
 
-#########lambda to sns permissions#########
+## Lambda needs to CONSUME messages from SQS #####
+resource "aws_iam_policy" "lambda_sqs_consume" {
+  name = "${local.project}-lambda-sqs-consume"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage",
+        "sqs:GetQueueAttributes"
+      ]
+      Resource = aws_sqs_queue.payment_queue.arn
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_sqs_consume_attach" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = aws_iam_policy.lambda_sqs_consume.arn
+}
+
+######### Lambda → SNS #########
 resource "aws_iam_policy" "lambda_publish_sns" {
   name        = "${local.project}-lambda-publish-sns"
   description = "Allow Lambdas to publish to SNS topic"
@@ -62,7 +77,7 @@ resource "aws_iam_role_policy_attachment" "lambda_publish_sns_attach" {
   policy_arn = aws_iam_policy.lambda_publish_sns.arn
 }
 
-###evenbridge putevents permissions for Lambda#######
+### Lambda → EventBridge PutEvents #######
 resource "aws_iam_policy" "lambda_eventbridge_put" {
   name        = "${local.project}-lambda-eventbridge-put"
   description = "Allow Lambdas to put events on EventBridge bus"
@@ -82,7 +97,7 @@ resource "aws_iam_role_policy_attachment" "lambda_eventbridge_put_attach" {
   policy_arn = aws_iam_policy.lambda_eventbridge_put.arn
 }
 
-####sqs sendmessage permissions for Lambda#####
+#### Lambda → SQS SendMessage #####
 resource "aws_iam_policy" "lambda_sqs_send" {
   name        = "${local.project}-lambda-sqs-send"
   description = "Allow Lambdas to send messages to SQS queues"

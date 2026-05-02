@@ -3,14 +3,13 @@ name: Terraform CI
 on:
   push:
     paths:
-    - '*.tf'
-    - '**/*.tf'
-    - '.github/workflows/terraform.yml'
+      - '*.tf'
+      - '**/*.tf'
+      - '.github/workflows/terraform.yml'
 
   pull_request:
     paths:
       - '**'
-     # - 'lab2_order_system/**'
 
 jobs:
   terraform:
@@ -29,41 +28,64 @@ jobs:
           terraform_version: 1.6.6
 
       - name: Terraform Format
-        working-directory: .
         run: terraform fmt -check -recursive
 
       - name: Terraform Init (Lab 1)
-        working-directory: .
         run: terraform init -input=false
 
       - name: Terraform Validate (Lab 1)
-        working-directory: .
         run: terraform validate
 
+      - name: Build Lambda ZIPs
+        run: |
+          echo "Zipping Lambda functions..."
+
+          mkdir -p build
+
+          # Create Order Lambda
+          cd lambdas/create_order
+          zip -r ../../build/lambda_create_order.zip .
+          cd ../..
+
+          # OrderCreated Handler Lambda
+          cd lambdas/order_created_handler
+          zip -r ../../build/lambda_order_created_handler.zip .
+          cd ../..
+
+          # Payment Processor Lambda
+          cd lambdas/payment_processor
+          zip -r ../../build/lambda_payment_processor.zip .
+          cd ../..
+
+          echo "Lambda ZIPs created in ./build"
+
       - name: Terraform Plan (Lab 1)
-        working-directory: .
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
         run: |
-         terraform plan -input=false \
-         -var "db_username=${DB_USERNAME}" \
-         -var "db_password=${DB_PASSWORD}"
+          terraform plan -input=false \
+            -var "db_username=${DB_USERNAME}" \
+            -var "db_password=${DB_PASSWORD}" \
+            -var "notification_email=${NOTIFICATION_EMAIL}"
 
       - name: Terraform Apply (Lab 1)
-        working-directory: .
+        if: github.ref == 'refs/heads/main'
         env:
-         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-         DB_USERNAME: ${{ secrets.DB_USERNAME }}
-         DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
         run: |
-         terraform apply -auto-approve \
-         -var "db_username=${DB_USERNAME}" \
-         -var "db_password=${DB_PASSWORD}"
-  
+          terraform apply -auto-approve \
+            -var "db_username=${DB_USERNAME}" \
+            -var "db_password=${DB_PASSWORD}" \
+            -var "notification_email=${NOTIFICATION_EMAIL}"
+
  
 
      # - name: Terraform Init (Lab 2)

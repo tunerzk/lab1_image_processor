@@ -8,9 +8,10 @@ resource "aws_cloudwatch_event_rule" "order_created_rule" {
   name           = "${local.project}-order-created"
   event_bus_name = aws_cloudwatch_event_bus.orders_bus.name
 
-  event_pattern = jsonencode({
-    "detail-type" : ["OrderCreated"]
-  })
+ event_pattern = jsonencode({
+  source       = ["orders.api"]
+  "detail-type" = ["OrderCreated"]
+}) 
 }
 
 # Rule: When an order is paid
@@ -19,8 +20,10 @@ resource "aws_cloudwatch_event_rule" "order_paid_rule" {
   event_bus_name = aws_cloudwatch_event_bus.orders_bus.name
 
   event_pattern = jsonencode({
-    "detail-type" : ["OrderPaid"]
-  })
+  source       = ["orders.payment"]
+  "detail-type" = ["OrderPaid"]
+})
+
 }
 
 ############eventbridge targets##############
@@ -28,12 +31,15 @@ resource "aws_cloudwatch_event_rule" "order_paid_rule" {
 resource "aws_cloudwatch_event_target" "order_created_target" {
   rule           = aws_cloudwatch_event_rule.order_created_rule.name
   event_bus_name = aws_cloudwatch_event_bus.orders_bus.name
-  arn            = aws_lambda_function.order_created_handler.arn
+ arn = aws_lambda_function.order_created_handler.arn
+ 
+
 }
 
 # Target for OrderPaid → (later) PaymentProcessor or Notification Lambda
 resource "aws_cloudwatch_event_target" "order_paid_target" {
   rule           = aws_cloudwatch_event_rule.order_paid_rule.name
   event_bus_name = aws_cloudwatch_event_bus.orders_bus.name
-  arn            = aws_lambda_function.payment_processor.arn
+ arn = aws_sns_topic.order_notifications.arn
+ 
 }
