@@ -1,0 +1,10 @@
+{
+  "name": "lambda-payment-processor",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "mysql2": "^3.9.0",
+    "@aws-sdk/client-eventbridge": "^3.645.0",
+    "@aws-sdk/client-sns": "^3.645.0"
+  }
+}
