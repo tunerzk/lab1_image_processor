@@ -22,6 +22,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Build Lambda ZIPs
+        run: |
+          echo "Zipping Lambda functions..."
+
+          mkdir -p build
+
+          # Create Order Lambda
+          cd lambdas/create_order
+          npm install
+          zip -r ../../build/lambda_create_order.zip .
+          cd ../..
+
+          # OrderCreated Handler Lambda
+          cd lambdas/order_created_handler
+          npm install
+          zip -r ../../build/lambda_order_created_handler.zip .
+          cd ../..
+
+          # Payment Processor Lambda
+          cd lambdas/payment_processor
+          npm install
+          zip -r ../../build/lambda_payment_processor.zip .
+          cd ../..
+
+          echo "Lambda ZIPs created in ./build"
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -35,29 +66,6 @@ jobs:
 
       - name: Terraform Validate (Lab 1)
         run: terraform validate
-
-      - name: Build Lambda ZIPs
-        run: |
-          echo "Zipping Lambda functions..."
-
-          mkdir -p build
-
-          # Create Order Lambda
-          cd lambdas/create_order
-          zip -r ../../build/lambda_create_order.zip .
-          cd ../..
-
-          # OrderCreated Handler Lambda
-          cd lambdas/order_created_handler
-          zip -r ../../build/lambda_order_created_handler.zip .
-          cd ../..
-
-          # Payment Processor Lambda
-          cd lambdas/payment_processor
-          zip -r ../../build/lambda_payment_processor.zip .
-          cd ../..
-
-          echo "Lambda ZIPs created in ./build"
 
       - name: Terraform Plan (Lab 1)
         env:
@@ -86,7 +94,6 @@ jobs:
             -var "db_password=${DB_PASSWORD}" \
             -var "notification_email=${NOTIFICATION_EMAIL}"
 
- 
 
      # - name: Terraform Init (Lab 2)
      #   working-directory: ./lab2_order_system
