@@ -1,4 +1,4 @@
-## force workflow reload
+# force reload
 name: Terraform CI
 
 on:
