@@ -34,19 +34,19 @@ jobs:
           mkdir -p build
 
           # Create Order Lambda
-          cd lambdas/create_order
+          cd lambsrc/create_order
           npm install
           zip -r ../../build/lambda_create_order.zip .
           cd ../..
 
           # OrderCreated Handler Lambda
-          cd lambdas/order_created_handler
+          cd lambsrc/order_created_handler
           npm install
           zip -r ../../build/lambda_order_created_handler.zip .
           cd ../..
 
           # Payment Processor Lambda
-          cd lambdas/payment_processor
+          cd lambsrc/payment_processor
           npm install
           zip -r ../../build/lambda_payment_processor.zip .
           cd ../..
