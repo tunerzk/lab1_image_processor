@@ -24,15 +24,3 @@ resource "aws_apigatewayv2_integration" "create_order_integration" {
   payload_format_version = "2.0"
 }
 
-resource "aws_apigatewayv2_integration_response" "create_order_integration_response" {
-  api_id                   = aws_apigatewayv2_api.orders_api.id
-  integration_id           = aws_apigatewayv2_integration.create_order_integration.id
-  integration_response_key = "$default"
-}
-
-resource "aws_apigatewayv2_route_response" "create_order_route_response" {
-  api_id             = aws_apigatewayv2_api.orders_api.id
-  route_id           = aws_apigatewayv2_route.create_order_route.id
-  route_response_key = "$default"
-}
-
